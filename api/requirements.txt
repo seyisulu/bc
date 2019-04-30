@@ -1,0 +1,4 @@
+argon2-cffi==19.1.0
+django==2.2
+djangorestframework==3.9.2
+psycopg=2.7

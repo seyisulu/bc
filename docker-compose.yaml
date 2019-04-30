@@ -1,0 +1,36 @@
+version: "3.3"
+
+services:
+  api:
+    build: ./api
+    container_name: briteapi
+    command: ["./serve.sh"]
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    networks:
+      - britenet
+    ports:
+      - "8881:8000"
+    volumes:
+      - .:/api
+
+  db:
+    image: postgres:11.2-alpine
+    container_name: britedb
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    networks:
+      - britenet
+    ports:
+      - "8882:5432"
+    volumes:
+      - "pg-data:/var/lib/postgresql/data"
+
+networks:
+  britenet:
