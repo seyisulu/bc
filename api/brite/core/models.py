@@ -101,13 +101,13 @@ class Risk(BaseModel):
 
 
 class Field(BaseModel):
-    """Model for a generic risk entry."""
+    """Model for a generic field entry."""
     # Fields
-    value = models.CharField(max_length=191, db_index=True)
     field_type = models.ForeignKey(
         FieldType, on_delete=models.CASCADE, related_name='fields')
     risk = models.ForeignKey(
         Risk, on_delete=models.CASCADE, related_name='fields')
+    value = models.CharField(max_length=191, db_index=True)
 
     # Metadata
     class Meta:
@@ -116,7 +116,7 @@ class Field(BaseModel):
     # Methods
     def get_absolute_url(self):
         """Returns the url to access a single Risk entry."""
-        return reverse('risk-detail', args=[self.pk])
+        return reverse('field-detail', args=[self.pk])
 
     def __str__(self):
         """String representing RiskType."""
