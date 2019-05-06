@@ -29,10 +29,13 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('name', 'url')
 
 
-class FieldTypeSerializer(serializers.HyperlinkedModelSerializer):
+class FieldTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        extra_kwargs = {'options': {'allow_null': True}}
-        fields = ('kind', 'name', 'options', 'required', 'risk_type', 'url')
+        extra_kwargs = {
+            'options': {'allow_null': True},
+            'risk_type': {'read_only': True},
+        }
+        fields = ('kind', 'name', 'options', 'required', 'risk_type')
         model = FieldType
 
 
@@ -57,17 +60,12 @@ class RiskTypeSerializer(serializers.HyperlinkedModelSerializer):
         model = RiskType
 
     def create(self, validated_data):
-        print('Creating risk type...')
         field_types_data = validated_data.pop('field_types')
-        print('Popped field types...')
         risk_type = RiskType(**validated_data)
-        print('Instantiating risk type...')
         risk_type.save()
-        print('Created risk type...')
         FieldType.objects.bulk_create([
             FieldType(risk_type=risk_type, **f) for f in field_types_data
         ])
-        print('Added field types...')
         return RiskType.objects.get(pk=risk_type.pk)
 
 

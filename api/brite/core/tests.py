@@ -111,6 +111,5 @@ class RiskTypeTest(BaseCase):
             data=json.dumps(data),
             content_type='application/json',
             **header,
-        )
-        print(f'res: {res}')
-        self.assertEqual(self.EMAIL, data.get('email'), 'Email mismatch')
+        ).data
+        self.assertEqual(res.get('name'), data.get('name'), 'Email mismatch')
