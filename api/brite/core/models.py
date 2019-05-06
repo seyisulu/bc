@@ -38,7 +38,7 @@ class RiskType(BaseModel):
         return self.name
 
 
-class FieldType(BaseModel):
+class FieldType(models.Model):
     """Model for a generic risk specification."""
     CURRENCY = 'currency'
     DATE = 'date'
@@ -100,7 +100,7 @@ class Risk(BaseModel):
         return f'{self.client} ({self.risk_type.name})'
 
 
-class Field(BaseModel):
+class Field(models.Model):
     """Model for a generic field entry."""
     # Fields
     field_type = models.ForeignKey(
@@ -111,7 +111,7 @@ class Field(BaseModel):
 
     # Metadata
     class Meta:
-        ordering = ['client']
+        ordering = ['risk', 'field_type']
 
     # Methods
     def get_absolute_url(self):
@@ -120,4 +120,4 @@ class Field(BaseModel):
 
     def __str__(self):
         """String representing RiskType."""
-        return f'{self.client} ({self.risk_type.name})'
+        return f'{self.value}'
