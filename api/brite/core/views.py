@@ -72,7 +72,6 @@ class RiskList(generics.ListCreateAPIView):
     def get_queryset(self):
         risk_types = RiskType.objects.values_list(
             'pk', flat=True).filter(user=self.request.user)
-        print(f'Risk Type IDs: {risk_types}')
         return Risk.objects.filter(risk_type__in=risk_types)
 
     serializer_class = RiskSerializer
@@ -84,7 +83,6 @@ class RiskInfo(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         risk_types = RiskType.objects.values_list(
             'pk', flat=True).filter(user=self.request.user)
-        print(f'Risk Type IDs: {risk_types}')
         return Risk.objects.filter(risk_type__in=risk_types)
 
     serializer_class = RiskSerializer

@@ -122,8 +122,8 @@ class RiskTypeTest(BaseCase):
         url = reverse('risk_type', args=[dat.get('pk')])
         header = self.get_auth_header()
         res = self.client.get(url, **header).data
-        sent_fields = len(dat.get('field_types'))
-        got_fields = len(res.get('field_types'))
+        sent_fields = len(dat.get('field_types', []))
+        got_fields = len(res.get('field_types', []))
         self.assertEqual(dat.get('name'), res.get('name'), 'RiskType mismatch')
         self.assertEqual(sent_fields, got_fields, 'FieldType count mismatch')
 
@@ -170,3 +170,27 @@ class RiskTest(BaseCase):
         risk = self.create_risk()
         client = self.DATA['client']
         self.assertEqual(client, risk.get('client'), 'Risk mismatch')
+
+    def test_risk_get(self):
+        risk = self.create_risk()
+
+        url = reverse('risk', args=[risk.get('pk')])
+        header = self.get_auth_header()
+        res = self.client.get(url, **header).data
+
+        sent_fields = len(risk.get('fields', []))
+        got_fields = len(res.get('fields', []))
+        client = res.get('client')
+
+        self.assertEqual(risk.get('client'), client, 'Risk mismatch')
+        self.assertEqual(sent_fields, got_fields, 'Field count mismatch')
+
+    def test_risk_list(self):
+        self.create_risk()
+        self.create_risk()
+
+        url = reverse('risks')
+        header = self.get_auth_header()
+        res = self.client.get(url, **header).data
+
+        self.assertEqual(res.get('count'), 2, 'Risk count mismatch')
