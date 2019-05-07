@@ -33,13 +33,14 @@ class FieldTypeSerializer(serializers.ModelSerializer):
     class Meta:
         extra_kwargs = {
             'options': {'allow_null': True},
+            'pk': {'read_only': True},
             'risk_type': {'read_only': True},
         }
-        fields = ('kind', 'name', 'options', 'required', 'risk_type')
+        fields = ('kind', 'name', 'options', 'pk', 'required', 'risk_type')
         model = FieldType
 
 
-class RiskTypeSerializer(serializers.HyperlinkedModelSerializer):
+class RiskTypeSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(
         default=serializers.CreateOnlyDefault(timezone.now), read_only=True)
     field_types = FieldTypeSerializer(many=True, read_only=False)
@@ -47,12 +48,16 @@ class RiskTypeSerializer(serializers.HyperlinkedModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        extra_kwargs = {'url': {'view_name': 'risk_type'}}
+        extra_kwargs = {
+            'pk': {'read_only': True},
+            'url': {'view_name': 'risk_type'},
+        }
         fields = (
             'created',
             'description',
             'field_types',
             'name',
+            'pk',
             'updated',
             'url',
             'user'
@@ -69,29 +74,29 @@ class RiskTypeSerializer(serializers.HyperlinkedModelSerializer):
         return RiskType.objects.get(pk=risk_type.pk)
 
 
-class FieldSerializer(serializers.HyperlinkedModelSerializer):
+class FieldSerializer(serializers.ModelSerializer):
     class Meta:
+        extra_kwargs = {
+            'pk': {'read_only': True},
+            'risk': {'read_only': True},
+        }
         model = Field
-        fields = ('field_type', 'risk', 'value', 'url')
+        fields = ('field_type', 'pk', 'risk', 'value')
 
 
-class RiskSerializer(serializers.HyperlinkedModelSerializer):
+class RiskSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(
         default=serializers.CreateOnlyDefault(timezone.now), read_only=True)
     fields = FieldSerializer(many=True, read_only=False)
-    risk_type = RiskTypeSerializer()
     updated = serializers.DateTimeField(default=timezone.now, read_only=True)
 
     class Meta:
         model = Risk
-        fields = ('client', 'created', 'fields', 'risk_type', 'updated', 'url')
+        fields = ('client', 'created', 'fields', 'pk', 'risk_type', 'updated')
 
     def create(self, validated_data):
-        risk_type = RiskType.objects.get(pk=validated_data.pop('risk_type'))
         fields_data = validated_data.pop('fields')
-        risk = Risk(risk_type=risk_type, **validated_data)
+        risk = Risk(**validated_data)
         risk.save()
-        Field.objects.bulk_create([
-            Field(risk=risk, **f) for f in fields_data
-        ])
+        Field.objects.bulk_create([Field(risk=risk, **f) for f in fields_data])
         return Risk.objects.get(pk=risk.pk)

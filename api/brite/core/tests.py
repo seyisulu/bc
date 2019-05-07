@@ -81,35 +81,92 @@ class UserTest(BaseCase):
 
 
 class RiskTypeTest(BaseCase):
-    def test_risk_type_add(self):
-        header = self.get_auth_header()
-        url = reverse('risk_types')
-        data = {
-            'name': 'Wahala+',
-            'description': 'Non-discriminatory wahala coverage.',
-            'field_types': [
-                {
-                    'kind': 'number',
-                    'name': 'Duration (months)',
-                },
-                {
-                    'kind': 'currency',
-                    'name': 'Premium',
-                },
-                {
-                    'kind': 'enum',
-                    'name': 'Referrer',
-                    'options': json.dumps({
-                        'values': ['billboard', 'friend', 'web']
-                    }),
-                },
-            ]
-        }
-        # path, data=data, format=format, content_type=content_type, **extra
-        res = self.client.post(
-            url,
+    DATA = {
+        'name': 'Wahala+',
+        'description': 'Non-discriminatory wahala coverage.',
+        'field_types': [
+            {
+                'kind': 'number',
+                'name': 'Duration (months)',
+            },
+            {
+                'kind': 'currency',
+                'name': 'Premium',
+            },
+            {
+                'kind': 'enum',
+                'name': 'Referrer',
+                'options': json.dumps({
+                    'values': ['billboard', 'friend', 'web']
+                }),
+            },
+        ]
+    }
+
+    def create_risk_type(self, data=None):
+        data = data or self.DATA
+        return self.client.post(
+            reverse('risk_types'),
             data=json.dumps(data),
             content_type='application/json',
-            **header,
+            **(self.get_auth_header()),
         ).data
-        self.assertEqual(res.get('name'), data.get('name'), 'Email mismatch')
+
+    def test_risk_type_add(self):
+        res = self.create_risk_type()
+        name = self.DATA.get('name')
+        self.assertEqual(res.get('name'), name, 'RiskType mismatch')
+
+    def test_risk_type_get(self):
+        dat = self.create_risk_type()
+        url = reverse('risk_type', args=[dat.get('pk')])
+        header = self.get_auth_header()
+        res = self.client.get(url, **header).data
+        sent_fields = len(dat.get('field_types'))
+        got_fields = len(res.get('field_types'))
+        self.assertEqual(dat.get('name'), res.get('name'), 'RiskType mismatch')
+        self.assertEqual(sent_fields, got_fields, 'FieldType count mismatch')
+
+    def test_risk_type_list(self):
+        self.create_risk_type()
+        url = reverse('risk_types')
+        header = self.get_auth_header()
+        res = self.client.get(url, **header).data
+        self.assertEqual(res.get('count'), 1, 'RiskType count mismatch')
+
+
+class RiskTest(BaseCase):
+    DATA = {
+        'client': 'Baba Iyabo',
+        'fields': {
+            'Duration (months)': 24,
+            'Premium': 1234,
+            'Referrer': 'web',
+        }
+    }
+
+    def create_risk(self):
+        risk_test = RiskTypeTest()
+        risk_test.token = self.token
+        risk_type = risk_test.create_risk_type()
+        data = dict(self.DATA)
+        data['risk_type'] = risk_type.get('pk')
+        fields = [
+            {
+                'field_type': field_type['pk'],
+                'value': data['fields'][field_type['name']],
+            }
+            for field_type in risk_type['field_types']
+        ]
+        data['fields'] = fields
+        return self.client.post(
+            reverse('risks'),
+            data=json.dumps(data),
+            content_type='application/json',
+            **(self.get_auth_header()),
+        ).data
+
+    def test_risk_add(self):
+        risk = self.create_risk()
+        client = self.DATA['client']
+        self.assertEqual(client, risk.get('client'), 'Risk mismatch')

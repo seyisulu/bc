@@ -65,3 +65,27 @@ class RiskTypeInfo(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = RiskTypeSerializer
     permission_classes = (IsOwner,)
+
+
+class RiskList(generics.ListCreateAPIView):
+    """List all risks for logged in user."""
+    def get_queryset(self):
+        risk_types = RiskType.objects.values_list(
+            'pk', flat=True).filter(user=self.request.user)
+        print(f'Risk Type IDs: {risk_types}')
+        return Risk.objects.filter(risk_type__in=risk_types)
+
+    serializer_class = RiskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class RiskInfo(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a Risk instance."""
+    def get_queryset(self):
+        risk_types = RiskType.objects.values_list(
+            'pk', flat=True).filter(user=self.request.user)
+        print(f'Risk Type IDs: {risk_types}')
+        return Risk.objects.filter(risk_type__in=risk_types)
+
+    serializer_class = RiskSerializer
+    permission_classes = (permissions.IsAuthenticated,)

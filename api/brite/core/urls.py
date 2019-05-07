@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path('auth', views.Auth.as_view(), name='auth'),
     path('groups', views.GroupList.as_view(), name='groups'),
+    path('risks', views.RiskList.as_view(), name='risks'),
+    path('risks/<int:pk>', views.RiskInfo.as_view(), name='risk'),
     path('risk_types', views.RiskTypeList.as_view(), name='risk_types'),
     path('risk_types/<int:pk>', views.RiskTypeInfo.as_view(), name='risk_type'),
     path('users', views.UserAdd.as_view(), name='users'),
