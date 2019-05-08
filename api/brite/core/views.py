@@ -78,8 +78,8 @@ class RiskList(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
 
-class RiskInfo(generics.RetrieveUpdateDestroyAPIView):
-    """Retrieve, update or delete a Risk instance."""
+class RiskInfo(generics.RetrieveAPIView):
+    """Retrieve a Risk instance."""
     def get_queryset(self):
         risk_types = RiskType.objects.values_list(
             'pk', flat=True).filter(user=self.request.user)
